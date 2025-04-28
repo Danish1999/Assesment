@@ -26,6 +26,7 @@ A simple counter application that allows users to increment and decrement a numb
 ├── tsconfig.json      # TypeScript configuration
 ├── tsconfig.node.json # Node-specific TS config
 ├── cypress.config.ts  # Cypress configuration
+├── .gitignore        # Git ignore configuration
 └── package.json       # Project dependencies
 ```
 
@@ -190,11 +191,57 @@ Located in `.github/workflows/verify.yml`, this workflow:
 - `cypress/support/page-objects/CounterPage.ts`: Page object for tests
 - `test-plan/`: Detailed test documentation
 
-### Adding New Tests
+### Test Selectors
 
-1. Add test cases to `counter.cy.ts`
-2. Update page object if needed in `CounterPage.ts`
-3. Update test plan documentation
+The application uses data-test attributes for reliable test selection:
+
+```html
+<!-- Example of data-test attributes -->
+<h1 data-test="counter-heading">Counter: <span data-test="counter-value">0</span></h1>
+<button data-test="increment-button">Increment</button>
+<button data-test="decrement-button">Decrement</button>
+```
+
+Available data-test selectors:
+
+- `counter-heading`: Main counter heading
+- `counter-value`: Counter display value
+- `increment-button`: Increment button
+- `decrement-button`: Decrement button
+
+### Testing Best Practices
+
+1. **Using Data-Test Attributes**
+
+   ```typescript
+   // In CounterPage.ts
+   private readonly counterSelector: string = '[data-test="counter-value"]'
+   private readonly incrementButtonSelector: string = '[data-test="increment-button"]'
+   ```
+
+2. **Page Object Pattern**
+
+   - All selectors maintained in `CounterPage.ts`
+   - Methods use data-test attributes for reliable selection
+   - Chainable methods for fluent test writing
+
+3. **Writing Tests**
+   ```typescript
+   // Example test using data-test selectors
+   it('should increment counter', () => {
+     cy.get('[data-test="increment-button"]').click()
+     cy.get('[data-test="counter-value"]').should('have.text', '1')
+   })
+   ```
+
+### Adding New Features
+
+When adding new UI elements:
+
+1. Add appropriate data-test attributes
+2. Update `CounterPage.ts` with new selectors
+3. Add corresponding test methods
+4. Update test documentation
 
 ## Contributing
 
