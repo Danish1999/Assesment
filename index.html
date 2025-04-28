@@ -6,9 +6,9 @@
     <title>Counter App</title>
 </head>
 <body>
-    <h1>Counter: <span id="counter">0</span></h1>
-    <button id="increment-btn">Increment</button>
-    <button id="decrement-btn">Decrement</button>
+    <h1 data-test="counter-heading">Counter: <span id="counter" data-test="counter-value">0</span></h1>
+    <button id="increment-btn" data-test="increment-button">Increment</button>
+    <button id="decrement-btn" data-test="decrement-button">Decrement</button>
 
     <script>
         const counterElement = document.getElementById('counter');
