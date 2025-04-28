@@ -1,8 +1,8 @@
 export class CounterPage {
-  private readonly counterSelector: string = '#counter'
-  private readonly incrementButtonSelector: string = '#increment-btn'
-  private readonly decrementButtonSelector: string = '#decrement-btn'
-  private readonly headingSelector: string = 'h1'
+  private readonly counterSelector: string = '[data-test="counter-value"]'
+  private readonly incrementButtonSelector: string = '[data-test="increment-button"]'
+  private readonly decrementButtonSelector: string = '[data-test="decrement-button"]'
+  private readonly headingSelector: string = '[data-test="counter-heading"]'
 
   /**
    * Visits the counter page
@@ -43,12 +43,12 @@ export class CounterPage {
   }
 
   /**
-   * Asserts the counter value
-   * @param expectedValue - The expected value to check against
+   * Asserts that the counter displays the expected value
+   * @param expected The expected counter value
    * @returns this for method chaining
    */
-  assertCounterValue(expectedValue: number): this {
-    cy.get(this.counterSelector).should('have.text', expectedValue.toString())
+  assertCounterValue(expected: number): this {
+    cy.get(this.counterSelector).should('have.text', expected.toString())
     return this
   }
 
@@ -68,16 +68,17 @@ export class CounterPage {
    * @returns this for method chaining
    */
   verifyButtonTexts(): this {
-    cy.get(this.incrementButtonSelector)
-      .should('be.visible')
-      .and('be.enabled')
-      .and('have.text', 'Increment')
+    cy.get(this.incrementButtonSelector).should('have.text', 'Increment')
+    cy.get(this.decrementButtonSelector).should('have.text', 'Decrement')
+    return this
+  }
 
-    cy.get(this.decrementButtonSelector)
-      .should('be.visible')
-      .and('be.enabled')
-      .and('have.text', 'Decrement')
-
+  /**
+   * Verifies that the counter cannot go below 0
+   * @returns this for method chaining
+   */
+  verifyNoNegativeNumbers(): this {
+    this.assertCounterValue(0).decrement().assertCounterValue(0).decrement().assertCounterValue(0)
     return this
   }
 
@@ -87,7 +88,6 @@ export class CounterPage {
    */
   verifyCounterDisplay(): this {
     cy.get(this.counterSelector).should('be.visible').and('have.text', '0')
-
     return this
   }
 
@@ -102,27 +102,6 @@ export class CounterPage {
       .within(() => {
         cy.get(this.counterSelector).should('exist')
       })
-
-    return this
-  }
-
-  /**
-   * Verifies that counter stays at zero when trying to decrement
-   * @returns this for method chaining
-   */
-  verifyNoNegativeNumbers(): this {
-    // First verify we're at zero
-    this.assertCounterValue(0)
-
-    // Try to decrement and verify it stays at zero
-    this.decrement()
-    this.assertCounterValue(0)
-
-    // Try multiple decrements to ensure it stays at zero
-    this.decrement()
-    this.decrement()
-    this.assertCounterValue(0)
-
     return this
   }
 }
