@@ -22,6 +22,7 @@ jobs:
         run: npm ci
 
       - name: Start server and run tests
+        id: cypress
         uses: cypress-io/github-action@v6
         with:
           start: npm start
@@ -36,3 +37,50 @@ jobs:
           name: cypress-screenshots
           path: cypress/screenshots
           if-no-files-found: ignore
+
+      - name: Generate Test Report
+        if: always()
+        run: |
+          echo "## Cypress Test Results :test_tube:" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Summary" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.cypress.outcome }}" == "success" ]]; then
+            echo "✅ All tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some tests failed. Check the artifacts for screenshots." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### Test Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ steps.cypress.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Browser**: Chrome" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: Ubuntu Latest" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ steps.cypress.outcome }}" == "failure" ]]; then
+            echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+            echo "Screenshots have been uploaded as artifacts. You can find them in the 'Artifacts' section of this run." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Add PR Comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const testStatus = '${{ steps.cypress.outcome }}' === 'success' ? '✅ Tests Passed' : '❌ Tests Failed';
+            const artifactsLink = '${{ steps.cypress.outcome }}' === 'failure' ? 
+              '\n\nView [test artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})' : '';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Test Results ${testStatus}
+
+              ### Details
+              - **Run ID**: ${context.runId}
+              - **Trigger**: ${context.eventName}
+              - **Browser**: Chrome
+              - **Environment**: Ubuntu Latest
+              
+              ${artifactsLink}
+              
+              For detailed results, check the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            });
